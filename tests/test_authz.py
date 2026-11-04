@@ -6,8 +6,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
 from app.audit import verify_chain
+from app.authz import authorize
 from app.extensions import db
-from app.models import AuditLog, User
+from app.models import AuditLog, Document, User
 from tests.conftest import upload
 
 
@@ -160,6 +161,39 @@ def test_uploaded_file_is_not_served_by_guessable_path(app, login):
     alice, doc_id = make_doc(login)
     assert app.test_client().get("/storage/secret.txt").status_code == 404
     assert alice.get("/static/../storage").status_code in (404,)
+
+
+# --- added after mutation testing showed these two checks were unprotected ---
+
+def test_deleted_document_is_unreachable_to_everyone(login):
+    """Kills the mutation that removes the deleted_at check in authorize()."""
+    alice, doc_id = make_doc(login)
+    carol = login("carol@t.test")
+    r = alice.post(f"/api/documents/{doc_id}/grants",
+                   json={"email": "carol@t.test", "level": "read"})
+    assert r.status_code in (200, 201)
+    assert carol.get(f"/api/documents/{doc_id}/download").status_code == 200
+
+    assert alice.delete(f"/api/documents/{doc_id}").status_code in (200, 204)
+
+    assert alice.get(f"/api/documents/{doc_id}/download").status_code == 404
+    assert alice.get(f"/api/documents/{doc_id}").status_code == 404
+    assert carol.get(f"/api/documents/{doc_id}/download").status_code == 404
+    assert carol.get(f"/api/documents/{doc_id}").status_code == 404
+
+
+def test_authorize_itself_refuses_inactive_user(app, login):
+    """Calls authorize() directly, bypassing Flask-Login, so it fails if the
+    is_active check inside authz.py is removed."""
+    from types import SimpleNamespace
+
+    _, doc_id = make_doc(login)
+    with app.app_context():
+        doc = db.session.get(Document, doc_id)
+        active = SimpleNamespace(id=doc.owner_id, is_authenticated=True, is_active=True)
+        inactive = SimpleNamespace(id=doc.owner_id, is_authenticated=True, is_active=False)
+        assert authorize(active, doc, "read") is True
+        assert authorize(inactive, doc, "read") is False
 
 
 _APP = {}
