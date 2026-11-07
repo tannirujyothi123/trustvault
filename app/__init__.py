@@ -45,11 +45,4 @@ def create_app(config=None):
         db.create_all()
         install_audit_triggers()
 
-    # TEMPORARY diagnostic route: remove after debugging
-    @app.get("/api/debug/db")
-    def debug_db():
-        from .models import User
-        url = db.engine.url
-        return jsonify(host=url.host, database=url.database, users=User.query.count())
-
     return app
