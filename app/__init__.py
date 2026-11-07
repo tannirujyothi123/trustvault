@@ -45,4 +45,6 @@ def create_app(config=None):
         db.create_all()
         install_audit_triggers()
 
-    return app
+    # TEMPORARY diagnostic route: remove after debugging
+    @app.get("/api/debug/db")
+    def
