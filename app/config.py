@@ -3,7 +3,8 @@ from datetime import timedelta
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-change-me")
+    # No default: production must provide SECRET_KEY (checked in wsgi.py).
+    SECRET_KEY = os.environ.get("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL", "sqlite:///trustvault.db"
     ).replace("postgres://", "postgresql://", 1)
@@ -11,12 +12,13 @@ class Config:
     UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(os.getcwd(), "storage"))
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Strict"
-    SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"   # set COOKIE_SECURE=1 on Render (https)
+    SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"   # set COOKIE_SECURE=1 on any https host
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
 
 
 class TestConfig(Config):
     TESTING = True
+    SECRET_KEY = "test-only"
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False
