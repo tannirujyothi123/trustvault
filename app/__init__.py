@@ -47,4 +47,9 @@ def create_app(config=None):
 
     # TEMPORARY diagnostic route: remove after debugging
     @app.get("/api/debug/db")
-    def
+    def debug_db():
+        from .models import User
+        url = db.engine.url
+        return jsonify(host=url.host, database=url.database, users=User.query.count())
+
+    return app
