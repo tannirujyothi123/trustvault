@@ -48,7 +48,11 @@ The app will not start without a SECRET_KEY from the environment, so there is no
 
 ## 9. Bad uploads
 
-Uploaded files are checked in `validate_upload` before they are saved, and rejected uploads are written to the audit log. Files are not in a public folder. They can only be downloaded through the route that checks permission and logs the download.
+Uploads are checked in `validate_upload` before saving. Only pdf, png, jpg, jpeg, docx and txt are allowed, and the file must be 10 MB or smaller. The first bytes of the file must match its extension, so a renamed file is rejected. Text files must be valid UTF-8 with no binary data. The mime type is chosen by the server, not taken from the client. Rejected uploads are written to the audit log.
+
+Files are saved under a random name outside any public folder. They can only be downloaded through the route that checks permission and logs the download.
+
+Left open: there is no virus scan. A docx or pdf could still contain something harmful for whoever opens it.
 
 ## 10. Secrets in a public repo
 
