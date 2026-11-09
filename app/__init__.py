@@ -40,6 +40,15 @@ def create_app(config=None):
         resp.headers["Cache-Control"] = "no-store"
         return resp
 
+    @app.get("/")
+    def index():
+        return jsonify(
+            name="TrustVault",
+            status="ok",
+            docs="https://github.com/tannirujyothi123/trustvault#readme",
+            note="JSON API. See the README for endpoints and demo accounts.",
+        )
+
     with app.app_context():
         from .audit import install_audit_triggers
         db.create_all()
