@@ -10,6 +10,8 @@ Every route checks permission on the server (`load_authorized` in `authz.py`). T
 
 I tested this on the live site. A viewer with no access got 404 for read, download, edit and delete.
 
+Admins cannot read document contents. They can manage users and see the audit log, but the same permission check applies to them as to everyone else.
+
 ## 2. Guessing which documents exist
 
 If the app said "forbidden" for one case and "not found" for another, an attacker could find out which IDs are real. So I return 404 for both. Document IDs are random UUIDs, so they can't be guessed anyway.

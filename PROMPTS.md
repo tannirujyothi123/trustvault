@@ -16,7 +16,7 @@ Asked: is my audit log really tamper-resistant?
 
 AI said: the database triggers and the hash chain are a good design, but the hash has no secret key, so someone with database access could rewrite the whole chain. Also, deleting the last rows would not be noticed. It also said a failed audit write should stop the request.
 
-What I did: I did not have time to add HMAC, so I wrote both gaps in THREATS.md as accepted risks. Later I checked the log on the live site: `/api/admin/audit/verify` said intact, and denied reads, downloads, edits, deletes and failed logins all showed up.
+What I did: I did not have time to add HMAC, so I wrote both gaps in THREATS.md as accepted risks. For the third point I checked the code. `log_event` runs before the file is sent and before the document is returned, and it has no try/except, so if the audit write fails the request errors out and no document data is sent. Later I checked the log on the live site: `/api/admin/audit/verify` said intact, and denied reads, downloads, edits, deletes and failed logins all showed up.
 
 ## 3. 2026-11-07: SECRET_KEY must come from the environment
 
@@ -52,7 +52,7 @@ AI said: the admin password must not be in the code.
 
 What I did: `seed.py` now reads the admin password from `SEED_ADMIN_PASSWORD` and stops if it is missing. Demo documents are created only when `SEED_DEMO_DOCS=1`, because files made on my laptop would not exist on Render (`41abb05`). I also reset the admin password in the live database with a small script, and that reset is in the audit log.
 
-## 7. 2026-11-09: Live proof of access control
+## 7. 2026-11-08: Live proof of access control
 
 Asked: how can I show access control working on the real site?
 
