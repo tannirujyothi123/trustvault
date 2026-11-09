@@ -6,7 +6,7 @@ Live app: https://trustvault-8ko9.onrender.com
 
 It runs on Render's free plan, so the first request after a quiet period can take up to a minute. Open `/api/csrf` once to wake it up.
 
-This is a JSON API (Flask, SQLAlchemy, Postgres). There is no web page. Use the examples below or the PowerShell steps in "Try it".
+This is a JSON API (Flask, SQLAlchemy, Postgres). There is no web page. Use the examples below.
 
 ## Roles
 
@@ -53,7 +53,7 @@ Anyone without access to a document gets `404 {"error": "not found"}`, the same 
 
 Request details:
 
-- Upload: multipart form with `file` and optional `category`.
+- Upload: multipart form with `file` and optional `category`. Allowed types: pdf, png, jpg, jpeg, docx, txt. Max 10 MB.
 - Search: `GET /documents?q=name&category=x&owner=email&date_from=YYYY-MM-DD&date_to=YYYY-MM-DD` (max 50 results).
 - Grant: JSON `{"email": "user@example.com", "level": "read"}` where level is `read` or `edit`.
 - Edit: JSON with `name` and/or `category`.
@@ -95,7 +95,7 @@ Add `$env:SEED_DEMO_DOCS = "1"` to also create two demo documents. Only do this 
 python -m pytest -q
 ```
 
-41 tests, including ones that show one user cannot read, download, edit or delete another user's document, that revoking takes effect at once, and that denied attempts are audited.
+41 tests, including ones that show a user without access cannot read, download, edit or delete another user's document, that revoking access takes effect immediately for an existing session, that denied attempts are written to the audit log, and that the audit log cannot be changed without the hash chain noticing.
 
 ## Deploy on Render
 
@@ -128,8 +128,10 @@ Then clear those variables from the terminal.
 - There is no endpoint to create users. Users come from `seed.py`. Admins can list and deactivate them.
 - Free Render plan: slow first request, uploaded files are lost on restart or redeploy, the free Postgres expires on December 7, 2026.
 - The audit hash has no secret key, and removing the last rows would not be detected. See THREATS.md.
+- No virus scan on uploads.
 
 ## More
 
+- WRITEUP.md: short summary of what I built and what I left out.
 - THREATS.md: attacks considered, what I did, what I accepted.
 - PROMPTS.md: dated notes on how I used AI, including its mistakes.
